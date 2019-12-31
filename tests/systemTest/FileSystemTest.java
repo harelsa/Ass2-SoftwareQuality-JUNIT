@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import system.BadFileNameException;
 import system.FileSystem;
+import system.Leaf;
 import system.OutOfSpaceException;
 
 import java.nio.file.DirectoryNotEmptyException;
@@ -41,13 +42,17 @@ public class FileSystemTest {
     }
 
     @Test
-    public void dir() throws BadFileNameException {
+    public void dir() throws BadFileNameException, OutOfSpaceException {
         String[] name = { "root" , "dirTest1"} ;
         fs.dir(name);
         assertNotNull(fs.DirExists(name));
         String[] name2 =  { "root" , "dirTest1" , "dirTest2"} ;
+        String[] name3=  { "root" , "dirTest1" , "dirTest2" , "fileTest1"} ;
         fs.dir(name2);
+        fs.file(name3 ,15) ;
         assertNotNull(fs.DirExists(name2));
+//        fs.dir(name2);
+//        assertNotNull(fs.FileExists(name3)) ;
 
     }
 
@@ -69,12 +74,10 @@ public class FileSystemTest {
 
         fs = new FileSystem(10) ;
         //int initFreeSpace = FileSystem.fileStorage.countFreeSpace();
-        String[][] disk = fs.disk();
         String[] name = { "root" , "file1"} ;
         fs.file(name , 5 );
+        String[][] disk = fs.disk();
         assertEquals( 10 , disk.length);
-
-
         disk = fs.disk() ;
         int count = 0 ;
         for (int i = 0; i < disk.length; i++) {
@@ -103,7 +106,11 @@ public class FileSystemTest {
         assertNotNull(fs.DirExists(name));
         String[] name2 =  { "root" , "dirTest1" , "fileTest1"} ;
         fs.file(name2 , 5);
+        Leaf toComapre ;
+        assertNotNull(  toComapre = fs.FileExists(name2));
+        fs.file(name2 , 7);
         assertNotNull(fs.FileExists(name2));
+        assertNotEquals(toComapre , fs.FileExists(name2)) ;
     }
 
 
@@ -162,6 +169,9 @@ public class FileSystemTest {
         assertTrue( toHelp.contains(rightAns[0] ) );
         assertTrue( toHelp.contains(rightAns[2] ) );
         assertFalse(toHelp.contains(rightAns[1]));
+        String[] NotExists = { "root" ,"NotdirTest2" } ;
+        assertNull(fs.lsdir(NotExists));
+        assertTrue(list[0].compareTo(list[1]) <0 );
 
     }
 
@@ -178,7 +188,11 @@ public class FileSystemTest {
         rightAns = new String[]{"dirTest2", "fileTest2"};
         assertEquals( rightAns[0] , list[0] );
         assertEquals( rightAns[1] , list[1] );
+        String[] bad  = new String[]{"root" , "dirTest2", "NotfileTest2"};
+
     }
+
+
 
     @Test
     public void rmdirEmpty() throws OutOfSpaceException, BadFileNameException, DirectoryNotEmptyException {
